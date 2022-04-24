@@ -1,0 +1,23 @@
+#include <kipr/wombat.h>
+#include <kipr/botball.h>
+
+
+int main()
+   {
+    create_connect();
+    enable_servos();
+    
+    set_create_distance(0);
+    while(get_create_distance()<810) // 212 for 20 cm
+    
+    {
+    create_drive_direct(100,100);
+    }
+    
+    //create_drive_direct(100,100);
+    //msleep(1000);
+    //int distance = get_create_distance();
+    //printf("%d", distance);
+    create_disconnect();
+    return 0;
+}
