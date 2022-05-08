@@ -1,0 +1,150 @@
+#include <kipr/wombat.h>
+
+const int ARM_DOWN=540;
+const int SARM_DOWN=-200;
+const int ARM_UP =0;
+const int LEFT_MOTOR=1;
+const int RIGHT_MOTOR=0;
+const int LLIGHT_SENSOR=1;
+const int RLIGHT_SENSOR=0;
+const int SERVO_PORT=2;
+
+void goforward (int cm, int speed);
+void move_tank (int Lspeed, int Rspeed, int distance);
+void line_following (int distance, int Lspeed, int Rspeed, int Lsensor_port, int rsensor_port );
+void turn_right ();
+void set_speed (int port, int position);
+void move_arm (int port,int speed, int ticks);
+void gobackward (int cm, int speed);
+
+//void set_arm_position (int port, int position);
+
+
+int main()    
+{
+wait_for_light(5);
+ shut_down_in (119);
+    enable_servos();
+    msleep(1000);
+    move_arm(SERVO_PORT,-1000,ARM_DOWN);
+    msleep (100);
+    goforward (30,50); 
+    msleep(1000);
+    move_tank (1500, 0, 5000);
+    msleep(1000);
+    line_following (8700, 100, 1000, LLIGHT_SENSOR, RLIGHT_SENSOR );
+    msleep(1000); 
+    move_arm(SERVO_PORT,-1000,-25);
+    msleep(500);
+    goforward (70,100);
+    move_arm(SERVO_PORT,1000, 25);
+    msleep(500);
+    line_following (4500, 100, 1000, LLIGHT_SENSOR, RLIGHT_SENSOR );
+    msleep (1000);
+    mrp(3,1000, -1200);
+    msleep (2000);
+    goforward (50,100);
+    msleep (2000);
+    mrp(3,1000, 50);
+    goforward (10,-30);
+    ao ();
+    
+    return (0);      
+} 
+/*void set_arm_position (int port, int position)
+{
+    int ms=1;
+    int i = 0;
+    int cp= get_servo_position(port);
+    if (position < cp) {
+        for(i=cp; i>=position;--i)
+        {
+            mrp(port,i);
+            msleep(ms);
+        }
+    }
+     else {
+         for ( i=cp; i<=position; ++i)
+         {
+             mrp(port, i);
+             msleep (ms);
+         }
+     }
+  }
+*/
+void turn_right ()
+{
+    motor(0,80);
+    motor (1,10);
+}
+
+void turn_left ()
+{
+    motor (0,10);
+    motor (1,800);
+}
+void line_following (int distance, int Lspeed, int Rspeed, int Lsensor_port, int rsensor_port )
+{
+    cmpc (LEFT_MOTOR);
+    cmpc (RIGHT_MOTOR);
+
+    while (gmpc(LEFT_MOTOR)<distance && gmpc(RIGHT_MOTOR)<distance)
+    {
+        if (analog(0)>4000)
+        {
+            turn_right ();
+        }
+        else 
+        {
+            turn_left ();
+        }
+    }
+    freeze(0);
+    freeze(1);         
+}
+void move_tank  (int Lspeed, int Rspeed, int distance)
+{
+
+    mrp (LEFT_MOTOR, Lspeed, distance);
+    mrp (RIGHT_MOTOR, Rspeed, distance);
+} 
+void gobackward (int cm, int speed)
+{
+    int circ =220; //mm
+    int error =204;
+    int distance = (cm*10.0/circ)*1800 - error;
+    printf("%d\n", distance);       
+    //int distance = 1800/cm *100; //in ticks
+    cmpc (0);
+    while (gmpc (0) > distance)
+    {
+        motor (0,speed);
+        motor (1,speed);
+    }
+
+    freeze (1);
+    freeze (0);
+}
+void goforward (int cm, int speed)
+{
+    int circ =220; //mm
+    int error =204;
+    int distance = (cm*10.0/circ)*1800 - error;
+    printf("%d\n", distance);       
+    //int distance = 1800/cm *100; //in ticks
+    cmpc (0);
+    while (gmpc (0) < distance);
+    {
+        motor (0,speed);
+        motor (1,speed);
+    }
+
+    freeze (1);
+    freeze (0);
+}
+void move_arm (int port,int speed, int ticks)
+{ 
+    cmpc (port);
+    mrp (port, speed, ticks);
+    msleep(500);
+}
